@@ -155,7 +155,7 @@ fun GameScreen(
         }
 
         if(helpModalShown.value) {
-
+            HelpModal(onDismissRequested = { helpModalShown.value = false },)
         }
 
     }
