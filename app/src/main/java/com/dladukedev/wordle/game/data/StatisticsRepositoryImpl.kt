@@ -44,7 +44,7 @@ class StatisticsRepositoryImpl @Inject constructor(
 
         val dailyResult = result.copy(dateOffset = offset)
 
-        gameResultDao.saveGameResult(result)
+        gameResultDao.saveGameResult(dailyResult)
     }
 
     override suspend fun savePracticeModeResult(state: GameState) {
