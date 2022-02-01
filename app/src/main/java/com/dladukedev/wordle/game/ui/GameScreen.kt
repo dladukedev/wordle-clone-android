@@ -2,7 +2,6 @@ package com.dladukedev.wordle.game.ui
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,7 +10,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dladukedev.wordle.LocalToastStore
-import com.dladukedev.wordle.game.state.DailyChallengeGameViewModel
 import com.dladukedev.wordle.game.state.GameEvent
 import com.dladukedev.wordle.game.state.GameViewModel
 import com.dladukedev.wordle.game.state.UIState
@@ -26,6 +24,7 @@ fun GameScreen(
     modifier: Modifier = Modifier,
     toastStore: ToastStore = LocalToastStore.current,
     context: Context = LocalContext.current,
+    onHowToPlayClick: () -> Unit,
     onPlayAgainRequested: (() -> Unit)? = null,
     viewModel: GameViewModel = viewModel()
 ) {
@@ -35,7 +34,6 @@ fun GameScreen(
     val flipCurrentRow = remember { mutableStateOf(false) }
     val resultGuessCount = remember { mutableStateOf<Int?>(null) }
     val gameOverModalShown = remember { mutableStateOf(false) }
-    val helpModalShown = remember { mutableStateOf(false) }
 
     if (state !is UIState.Content) {
         // Loading, fast enough to show nothing
@@ -96,7 +94,7 @@ fun GameScreen(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Header(
+        GameHeader(
             isComplete = state.isComplete,
             onClickClose = { onClickClose() },
             onClickShare = {
@@ -108,7 +106,7 @@ fun GameScreen(
                 val shareIntent = Intent.createChooser(sendIntent, null)
                 context.startActivity(shareIntent)
             },
-            onClickHelp = { helpModalShown.value = true },
+            onClickHelp = { onHowToPlayClick() },
             modifier = Modifier.height(48.dp),
         )
         GameBoard(
@@ -153,10 +151,5 @@ fun GameScreen(
                 recentResult = resultGuessCount.value,
             )
         }
-
-        if(helpModalShown.value) {
-            HelpModal(onDismissRequested = { helpModalShown.value = false },)
-        }
-
     }
 }

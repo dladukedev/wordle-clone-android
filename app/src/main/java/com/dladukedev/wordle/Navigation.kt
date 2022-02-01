@@ -14,6 +14,7 @@ import com.dladukedev.wordle.game.state.DailyChallengeGameViewModel
 import com.dladukedev.wordle.game.state.PracticeGameViewModel
 import com.dladukedev.wordle.game.statistics.StatisticsScreen
 import com.dladukedev.wordle.game.ui.GameScreen
+import com.dladukedev.wordle.game.ui.HowToPlayScreen
 import com.dladukedev.wordle.game.ui.ToastStore
 import com.dladukedev.wordle.menu.MainScreen
 
@@ -23,6 +24,7 @@ sealed class Routes(val id: String) {
     object PracticeMode : Routes("practice-mode-route")
     object Settings : Routes("settings-route")
     object Statistics : Routes("statistics-route")
+    object HowToPlay : Routes("how-to-play-route")
 }
 
 @Composable
@@ -44,12 +46,17 @@ fun Router(modifier: Modifier = Modifier) {
         }
         composable(Routes.DailyChallenge.id) {
             val viewModel = hiltViewModel<DailyChallengeGameViewModel>()
-            GameScreen(onClickClose = { navController.popBackStack() }, viewModel = viewModel)
+            GameScreen(
+                onClickClose = { navController.popBackStack() },
+                onHowToPlayClick = { navController.navigate(Routes.HowToPlay.id) },
+                viewModel = viewModel
+            )
         }
         composable(Routes.PracticeMode.id) {
             val viewModel = hiltViewModel<PracticeGameViewModel>()
             GameScreen(
                 onClickClose = { navController.popBackStack() },
+                onHowToPlayClick = { navController.navigate(Routes.HowToPlay.id) },
                 onPlayAgainRequested = {
                     navController.navigate(
                         Routes.PracticeMode.id,
@@ -63,6 +70,11 @@ fun Router(modifier: Modifier = Modifier) {
         }
         composable(Routes.Statistics.id) {
             StatisticsScreen()
+        }
+        composable(Routes.HowToPlay.id) {
+            HowToPlayScreen {
+                navController.popBackStack()
+            }
         }
     }
 }
