@@ -24,11 +24,14 @@ abstract class AppModule {
     abstract fun bindGuessWordValidator(impl: GuessWordValidatorImpl): GuessWordValidator
 
     @Binds
-    abstract fun bindDataStoreWrapper(impl: DataStoreWrapperImpl): DataStoreWrapper
+    abstract fun bindDataStoreWrapper(impl: SaveDataStoreImpl): SaveDataStore
 
     @Binds
     abstract fun bindGetShareStringUseCase(impl: GetShareStringUseCaseImpl): GetShareStringUseCase
 
     @Binds
     abstract fun bindStatisticsRepository(impl: StatisticsRepositoryImpl): StatisticsRepository
+
+    @Binds
+    abstract fun bindPreferencesDataStore(impl: PreferencesDataStoreImpl): PreferencesDataStore
 }

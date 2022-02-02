@@ -2,6 +2,7 @@ package com.dladukedev.wordle.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
+import com.dladukedev.wordle.game.domain.ColorThemePreference
 
 @Composable
 private fun ThemeProvider(
@@ -25,7 +26,13 @@ private fun ThemeProvider(
 internal val LocalColors = staticCompositionLocalOf { lightTheme }
 
 @Composable
-fun WordleTheme(isNightMode: Boolean = isSystemInDarkTheme(), isColorBlindMode: Boolean = false, content: @Composable () -> Unit) {
+fun WordleTheme(themePreference: ColorThemePreference, isColorBlindMode: Boolean = false, content: @Composable () -> Unit) {
+    val isNightMode = when(themePreference) {
+        ColorThemePreference.Dark -> true
+        ColorThemePreference.Light -> false
+        ColorThemePreference.System -> isSystemInDarkTheme()
+    }
+
     val colors = when {
         isNightMode && isColorBlindMode -> colorBlindDarkTheme
         !isNightMode && isColorBlindMode -> colorBlindLightTheme

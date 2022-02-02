@@ -7,7 +7,7 @@ import javax.inject.Singleton
 
 @Singleton
 class PracticeGameStateRepositoryImpl @Inject constructor(
-    private val dataStoreWrapper: DataStoreWrapper,
+    private val dataStoreWrapper: SaveDataStore,
     private val wordBank: WordBank,
 ) : PracticeGameStateRepository {
     override suspend fun getInitialGameState(): GameState {

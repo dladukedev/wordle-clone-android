@@ -28,7 +28,7 @@ fun mapGameStateToDataStoreGameState(gameState: GameState): DataStoreGameState {
 
 @Singleton
 class DailyChallengeGameStateRepositoryImpl @Inject constructor(
-    private val dataStoreWrapper: DataStoreWrapper,
+    private val dataStoreWrapper: SaveDataStore,
     private val dailyChallengeBank: DailyChallengeBank,
 ): DailyChallengeGameStateRepository {
     override suspend fun getInitialGameState(offset: Int): GameState {

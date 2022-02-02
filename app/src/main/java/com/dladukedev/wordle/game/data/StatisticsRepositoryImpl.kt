@@ -3,6 +3,7 @@ package com.dladukedev.wordle.game.data
 import com.dladukedev.wordle.game.data.db.GameResult
 import com.dladukedev.wordle.game.data.db.GameResultDao
 import com.dladukedev.wordle.game.domain.GameState
+import com.dladukedev.wordle.game.domain.StatisticsModel
 import com.dladukedev.wordle.game.domain.StatisticsRepository
 import com.dladukedev.wordle.game.domain.SummaryStatistics
 import javax.inject.Inject
@@ -72,7 +73,7 @@ class StatisticsRepositoryImpl @Inject constructor(
         val gamesWon = gameResultDao.getDailyChallengeGameWinCount()
 
         val currentStreak = gameResultDao.getDailyChallengeCurrentStreak(offset)
-        val longestStreak = gameResultDao.getPracticeModeLongestStreak()
+        val longestStreak = gameResultDao.getDailyChallengeLongestStreak()
 
         return SummaryStatistics(
             guess1Count = guess1Count,
@@ -118,5 +119,125 @@ class StatisticsRepositoryImpl @Inject constructor(
             currentStreak = currentStreak ?: 0,
             longestStreak = longestStreak ?: 0,
         )
+    }
+
+    override suspend fun loadPracticeModeStats(): StatisticsModel {
+        val guess1Count = gameResultDao.getPracticeModeGuessOneCount()
+        val guess2Count = gameResultDao.getPracticeModeGuessTwoCount()
+        val guess3Count = gameResultDao.getPracticeModeGuessThreeCount()
+        val guess4Count = gameResultDao.getPracticeModeGuessFourCount()
+        val guess5Count = gameResultDao.getPracticeModeGuessFiveCount()
+        val guess6Count = gameResultDao.getPracticeModeGuessSixCount()
+
+        val gamesPlayed = gameResultDao.getPracticeModeGameCount()
+        val gamesWon = gameResultDao.getPracticeModeGameWinCount()
+
+        val currentStreak = gameResultDao.getPracticeModeCurrentStreak()
+        val longestStreak = gameResultDao.getPracticeModeLongestStreak()
+
+        val words = gameResultDao.getPracticeModeGuessWords()
+            .flatMap { listOfNotNull(it.guessOne, it.guessTwo, it.guessThree, it.guessFour, it.guessFive, it.guessSix) }
+            .groupingBy { it }
+            .eachCount()
+            .toList()
+            .sortedByDescending { it.second }
+            .take(5)
+
+        return StatisticsModel(
+            guess1Count = guess1Count,
+            guess2Count = guess2Count,
+            guess3Count = guess3Count,
+            guess4Count = guess4Count,
+            guess5Count = guess5Count,
+            guess6Count = guess6Count,
+
+            gamesPlayed = gamesPlayed,
+            gamesWon = gamesWon,
+
+            currentStreak = currentStreak ?: 0,
+            longestStreak = longestStreak ?: 0,
+
+            topWords = words
+        )
+    }
+
+    override suspend fun loadDailyChallengeStats(offset: Int): StatisticsModel {
+        val guess1Count = gameResultDao.getDailyChallengeGuessOneCount()
+        val guess2Count = gameResultDao.getDailyChallengeGuessTwoCount()
+        val guess3Count = gameResultDao.getDailyChallengeGuessThreeCount()
+        val guess4Count = gameResultDao.getDailyChallengeGuessFourCount()
+        val guess5Count = gameResultDao.getDailyChallengeGuessFiveCount()
+        val guess6Count = gameResultDao.getDailyChallengeGuessSixCount()
+
+        val gamesPlayed = gameResultDao.getDailyChallengeGameCount()
+        val gamesWon = gameResultDao.getDailyChallengeGameWinCount()
+
+        // If today's puzzle isn't done, grab the standing streak from yesterday
+        val currentStreak = gameResultDao.getDailyChallengeCurrentStreak(offset) ?: gameResultDao.getDailyChallengeCurrentStreak(offset-1)
+
+        val longestStreak = gameResultDao.getDailyChallengeLongestStreak()
+
+        val words = gameResultDao.getDailyChallengeGuessWords()
+            .flatMap { listOfNotNull(it.guessOne, it.guessTwo, it.guessThree, it.guessFour, it.guessFive, it.guessSix) }
+            .groupingBy { it }
+            .eachCount()
+            .toList()
+            .sortedByDescending { it.second }
+            .take(5)
+
+        return StatisticsModel(
+            guess1Count = guess1Count,
+            guess2Count = guess2Count,
+            guess3Count = guess3Count,
+            guess4Count = guess4Count,
+            guess5Count = guess5Count,
+            guess6Count = guess6Count,
+
+            gamesPlayed = gamesPlayed,
+            gamesWon = gamesWon,
+
+            currentStreak = currentStreak ?: 0,
+            longestStreak = longestStreak ?: 0,
+
+            topWords = words
+        )
+    }
+
+    override suspend fun loadTotalStats(): StatisticsModel {
+        val guess1Count = gameResultDao.getPracticeModeGuessOneCount() + gameResultDao.getDailyChallengeGuessOneCount()
+        val guess2Count = gameResultDao.getPracticeModeGuessTwoCount() + gameResultDao.getDailyChallengeGuessTwoCount()
+        val guess3Count = gameResultDao.getPracticeModeGuessThreeCount() + gameResultDao.getDailyChallengeGuessThreeCount()
+        val guess4Count = gameResultDao.getPracticeModeGuessFourCount() + gameResultDao.getDailyChallengeGuessFourCount()
+        val guess5Count = gameResultDao.getPracticeModeGuessFiveCount() + gameResultDao.getDailyChallengeGuessFiveCount()
+        val guess6Count = gameResultDao.getPracticeModeGuessSixCount() + gameResultDao.getDailyChallengeGuessSixCount()
+
+        val gamesPlayed = gameResultDao.getPracticeModeGameCount() + gameResultDao.getDailyChallengeGameCount()
+        val gamesWon = gameResultDao.getPracticeModeGameWinCount() + gameResultDao.getDailyChallengeGameWinCount()
+
+        val words = (gameResultDao.getDailyChallengeGuessWords() + gameResultDao.getPracticeModeGuessWords())
+            .flatMap { listOfNotNull(it.guessOne, it.guessTwo, it.guessThree, it.guessFour, it.guessFive, it.guessSix) }
+            .groupingBy { it }
+            .eachCount()
+            .toList()
+            .sortedByDescending { it.second }
+            .take(5)
+
+        return StatisticsModel(
+            guess1Count = guess1Count,
+            guess2Count = guess2Count,
+            guess3Count = guess3Count,
+            guess4Count = guess4Count,
+            guess5Count = guess5Count,
+            guess6Count = guess6Count,
+
+            gamesPlayed = gamesPlayed,
+            gamesWon = gamesWon,
+
+            currentStreak = null,
+            longestStreak = null,
+
+            topWords = words
+        )
+
     }
 }

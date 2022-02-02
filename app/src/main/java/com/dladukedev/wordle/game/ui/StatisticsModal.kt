@@ -23,6 +23,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.dladukedev.wordle.R
 import com.dladukedev.wordle.game.domain.SummaryStatistics
+import com.dladukedev.wordle.game.statistics.GuessDistributionGraph
 import com.dladukedev.wordle.theme.Theme
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -64,70 +65,6 @@ fun StatisticsModalButton(modifier: Modifier = Modifier, content: @Composable ()
 }
 
 
-@Composable
-fun GuessDistributionRow(
-    guessNumber: String,
-    guessCount: Int,
-    maxGuessCount: Int,
-    highlight: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val backgroundColor = if (highlight) {
-        Theme.colors.correctLetter
-    } else {
-        Theme.colors.lightOnBackground
-    }
-
-    val style = TextStyle(
-        color = if (highlight) {
-            Theme.colors.onCorrectLetter
-        } else {
-            Theme.colors.darkOnBackground
-        },
-        fontSize = 14.sp,
-    )
-
-    val labelStyle = TextStyle(
-        color = Theme.colors.darkOnBackground,
-        fontSize = 14.sp,
-    )
-
-    Row(modifier = modifier) {
-        BasicText(
-            text = guessNumber,
-            style = labelStyle,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-        if (guessCount == 0) {
-            Box(modifier = Modifier.background(backgroundColor)) {
-                BasicText(
-                    text = "0",
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(horizontal = 4.dp),
-                    style = style
-                )
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .background(backgroundColor)
-                    .weight(guessCount.toFloat())
-            ) {
-                BasicText(
-                    text = guessCount.toString(),
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(horizontal = 4.dp),
-                    style = style
-                )
-            }
-            if (guessCount < maxGuessCount) {
-                Box(modifier = Modifier.weight((maxGuessCount - guessCount).toFloat()))
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -157,17 +94,6 @@ fun GameOverModal(
         fontSize = 12.sp,
         textAlign = TextAlign.Center,
     )
-
-    val max = derivedStateOf {
-        listOfNotNull(
-            statistics?.guess1Count,
-            statistics?.guess2Count,
-            statistics?.guess3Count,
-            statistics?.guess4Count,
-            statistics?.guess5Count,
-            statistics?.guess6Count,
-        ).maxOrNull() ?: 1
-    }
 
     Dialog(
         onDismissRequest = onDismissRequested,
@@ -253,47 +179,16 @@ fun GameOverModal(
                         )
                         Box(modifier = Modifier.height(8.dp))
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        GuessDistributionGraph(
+                            guess1Count = statistics.guess1Count,
+                            guess2Count = statistics.guess2Count,
+                            guess3Count = statistics.guess3Count,
+                            guess4Count = statistics.guess4Count,
+                            guess5Count = statistics.guess5Count,
+                            guess6Count = statistics.guess6Count,
+                            highlightGuessCount = recentResult,
                             modifier = Modifier.padding(horizontal = 24.dp)
-                        ) {
-                            GuessDistributionRow(
-                                "1",
-                                statistics.guess1Count,
-                                max.value,
-                                recentResult == 1
-                            )
-                            GuessDistributionRow(
-                                "2",
-                                statistics.guess2Count,
-                                max.value,
-                                recentResult == 2
-                            )
-                            GuessDistributionRow(
-                                "3",
-                                statistics.guess3Count,
-                                max.value,
-                                recentResult == 3
-                            )
-                            GuessDistributionRow(
-                                "4",
-                                statistics.guess4Count,
-                                max.value,
-                                recentResult == 4
-                            )
-                            GuessDistributionRow(
-                                "5",
-                                statistics.guess5Count,
-                                max.value,
-                                recentResult == 5
-                            )
-                            GuessDistributionRow(
-                                "6",
-                                statistics.guess6Count,
-                                max.value,
-                                recentResult == 6
-                            )
-                        }
+                        )
 
                         Box(modifier = Modifier.height(8.dp))
 

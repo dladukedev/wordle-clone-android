@@ -10,9 +10,12 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.dladukedev.wordle.game.preferences.EditPreferencesViewModel
+import com.dladukedev.wordle.game.preferences.PreferencesScreen
 import com.dladukedev.wordle.game.state.DailyChallengeGameViewModel
 import com.dladukedev.wordle.game.state.PracticeGameViewModel
 import com.dladukedev.wordle.game.statistics.StatisticsScreen
+import com.dladukedev.wordle.game.statistics.StatisticsViewModel
 import com.dladukedev.wordle.game.ui.GameScreen
 import com.dladukedev.wordle.game.ui.HowToPlayScreen
 import com.dladukedev.wordle.game.ui.ToastStore
@@ -41,7 +44,7 @@ fun Router(modifier: Modifier = Modifier) {
                 onDailyChallengeSelected = { navController.navigate(Routes.DailyChallenge.id) },
                 onNewGameSelected = { navController.navigate(Routes.PracticeMode.id) },
                 onStatisticsClicked = { navController.navigate(Routes.Statistics.id) },
-                onSettingSelected = { /*TODO*/ },
+                onSettingSelected = { navController.navigate(Routes.Settings.id) },
             )
         }
         composable(Routes.DailyChallenge.id) {
@@ -69,7 +72,14 @@ fun Router(modifier: Modifier = Modifier) {
             )
         }
         composable(Routes.Statistics.id) {
-            StatisticsScreen()
+            val viewModel = hiltViewModel<StatisticsViewModel>()
+
+            StatisticsScreen(viewModel, onClickClose = { navController.popBackStack() })
+        }
+        composable(Routes.Settings.id) {
+            val viewModel = hiltViewModel<EditPreferencesViewModel>()
+
+            PreferencesScreen(viewModel, onClickClose = { navController.popBackStack() })
         }
         composable(Routes.HowToPlay.id) {
             HowToPlayScreen {

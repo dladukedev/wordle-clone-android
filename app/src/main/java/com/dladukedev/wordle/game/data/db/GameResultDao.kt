@@ -31,7 +31,10 @@ interface GameResultDao {
     @Query("SELECT count(id) FROM gameResult WHERE dateOffset IS NULL AND isWin = 1")
     suspend fun getPracticeModeGameWinCount(): Int
 
-    @Query("SELECT streak FROM gameResult WHERE dateOffset = :checkDateOffset ORDER BY id")
+    @Query("SELECT guessOne, guessTwo, guessThree, guessFour, guessFive, guessSix FROM gameResult WHERE dateOffset IS NULL")
+    suspend fun getPracticeModeGuessWords(): List<GuessWords>
+
+    @Query("SELECT streak FROM gameResult WHERE dateOffset = :checkDateOffset ORDER BY id DESC")
     suspend fun getDailyChallengeCurrentStreak(checkDateOffset: Int): Int?
 
     @Query("SELECT max(streak) FROM gameResult WHERE dateOffset IS NOT NULL")
@@ -55,6 +58,9 @@ interface GameResultDao {
 
     @Query("SELECT count(id) FROM gameResult WHERE dateOffset IS NOT NULL AND isWin = 1")
     suspend fun getDailyChallengeGameWinCount(): Int
+
+    @Query("SELECT guessOne, guessTwo, guessThree, guessFour, guessFive, guessSix FROM gameResult WHERE dateOffset IS NOT NULL")
+    suspend fun getDailyChallengeGuessWords(): List<GuessWords>
 
     @Insert
     suspend fun saveGameResult(gameResult: GameResult)

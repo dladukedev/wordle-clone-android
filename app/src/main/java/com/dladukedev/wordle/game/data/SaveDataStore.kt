@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.datastore.preferences.core.Preferences
 
 data class DataStoreDailyChallengeGameState(
     val dateOffset: Int,
@@ -35,9 +36,9 @@ data class DataStoreGameState(
     val guessesToStore: String get() = guesses.joinToString(",")
 }
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "save_data")
+private val Context.saveDataStore: DataStore<Preferences> by preferencesDataStore(name = "save_data")
 
-interface DataStoreWrapper {
+interface SaveDataStore {
     suspend fun getDailyChallengeSavedData(): DataStoreDailyChallengeGameState?
     suspend fun saveDailyChallengeData(dateOffset: Int, state: DataStoreGameState)
     suspend fun clearDailyChallengeSavedData()
@@ -48,7 +49,7 @@ interface DataStoreWrapper {
 }
 
 @Singleton
-class DataStoreWrapperImpl @Inject constructor(@ApplicationContext private val context: Context,) : DataStoreWrapper {
+class SaveDataStoreImpl @Inject constructor(@ApplicationContext private val context: Context) : SaveDataStore {
     companion object {
         private val DAILY_CHALLENGE_OFFSET_KEY = stringPreferencesKey("DAILY_CHALLENGE_OFFSET_KEY")
         private val DAILY_CHALLENGE_TARGET_KEY = stringPreferencesKey("DAILY_CHALLENGE_TARGET_KEY")
@@ -59,7 +60,7 @@ class DataStoreWrapperImpl @Inject constructor(@ApplicationContext private val c
     }
 
     override suspend fun getDailyChallengeSavedData(): DataStoreDailyChallengeGameState? {
-        return context.dataStore.data.map { prefs ->
+        return context.saveDataStore.data.map { prefs ->
             val offset = prefs[DAILY_CHALLENGE_OFFSET_KEY]
             val targetWord = prefs[DAILY_CHALLENGE_TARGET_KEY]
             val guesses = prefs[DAILY_CHALLENGE_GUESSES_KEY]
@@ -73,7 +74,7 @@ class DataStoreWrapperImpl @Inject constructor(@ApplicationContext private val c
     }
 
     override suspend fun clearDailyChallengeSavedData() {
-        context.dataStore.edit { prefs ->
+        context.saveDataStore.edit { prefs ->
             prefs[DAILY_CHALLENGE_OFFSET_KEY] = ""
             prefs[DAILY_CHALLENGE_TARGET_KEY] = ""
             prefs[DAILY_CHALLENGE_GUESSES_KEY] = ""
@@ -83,7 +84,7 @@ class DataStoreWrapperImpl @Inject constructor(@ApplicationContext private val c
     override suspend fun saveDailyChallengeData(dateOffset: Int, state: DataStoreGameState) {
         val dailyChallengeGameState = DataStoreDailyChallengeGameState(dateOffset, state)
 
-        context.dataStore.edit { prefs ->
+        context.saveDataStore.edit { prefs ->
             prefs[DAILY_CHALLENGE_OFFSET_KEY] = dailyChallengeGameState.offsetToStore
             prefs[DAILY_CHALLENGE_TARGET_KEY] = dailyChallengeGameState.gameState.targetWord
             prefs[DAILY_CHALLENGE_GUESSES_KEY] = dailyChallengeGameState.gameState.guessesToStore
@@ -91,7 +92,7 @@ class DataStoreWrapperImpl @Inject constructor(@ApplicationContext private val c
     }
 
     override suspend fun getPracticeSavedData(): DataStoreGameState? {
-        return context.dataStore.data.map { prefs ->
+        return context.saveDataStore.data.map { prefs ->
             val targetWord = prefs[PRACTICE_MODE_TARGET_KEY]
             val guesses = prefs[PRACTICE_MODE_GUESSES_KEY]
 
@@ -104,14 +105,14 @@ class DataStoreWrapperImpl @Inject constructor(@ApplicationContext private val c
     }
 
     override suspend fun savePracticeData(state: DataStoreGameState) {
-        context.dataStore.edit { prefs ->
+        context.saveDataStore.edit { prefs ->
             prefs[PRACTICE_MODE_TARGET_KEY] = state.targetWord
             prefs[PRACTICE_MODE_GUESSES_KEY] = state.guessesToStore
         }
     }
 
     override suspend fun clearPracticeSavedData() {
-        context.dataStore.edit { prefs ->
+        context.saveDataStore.edit { prefs ->
             prefs[PRACTICE_MODE_TARGET_KEY] = ""
             prefs[PRACTICE_MODE_GUESSES_KEY] = ""
         }
