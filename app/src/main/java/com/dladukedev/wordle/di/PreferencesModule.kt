@@ -1,6 +1,8 @@
 package com.dladukedev.wordle.di
 
 import com.dladukedev.wordle.game.data.PreferencesRepositoryImpl
+import com.dladukedev.wordle.game.data.SystemThemeProvider
+import com.dladukedev.wordle.game.data.SystemThemeProviderImpl
 import com.dladukedev.wordle.game.domain.*
 import dagger.Binds
 import dagger.Module
@@ -27,4 +29,10 @@ abstract class PreferencesModule {
 
     @Binds
     abstract fun bindGetPreferencesUseCase(impl: GetPreferencesUseCaseImpl): GetPreferencesUseCase
+
+    @Binds
+    abstract fun bindGetCurrentAppThemeUseCase(impl: GetCurrentAppThemeUseCaseImpl): GetCurrentAppThemeUseCase
+
+    @Binds
+    abstract fun bindSystemThemeProvider(impl: SystemThemeProviderImpl): SystemThemeProvider
 }

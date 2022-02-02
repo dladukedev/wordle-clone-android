@@ -11,5 +11,5 @@ import javax.inject.Inject
 class SetupViewModel @Inject constructor(
     private val getPreferences: GetPreferencesUseCase
 ): ViewModel() {
-    fun getInitialPreferences(): Preferences = runBlocking { getInitialPreferences() }
+    fun getInitialPreferences(): Preferences = runBlocking { getPreferences() }
 }

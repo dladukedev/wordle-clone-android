@@ -100,7 +100,7 @@ fun GameScreen(
             onClickShare = {
                 val sendIntent: Intent = Intent().apply {
                     action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, viewModel.getShareString(true, false))
+                    putExtra(Intent.EXTRA_TEXT, viewModel.getShareString())
                     type = "text/plain"
                 }
                 val shareIntent = Intent.createChooser(sendIntent, null)
@@ -141,7 +141,7 @@ fun GameScreen(
                 onShareRequested = {
                     val sendIntent: Intent = Intent().apply {
                         action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, viewModel.getShareString(true, false))
+                        putExtra(Intent.EXTRA_TEXT, viewModel.getShareString())
                         type = "text/plain"
                     }
                     val shareIntent = Intent.createChooser(sendIntent, null)

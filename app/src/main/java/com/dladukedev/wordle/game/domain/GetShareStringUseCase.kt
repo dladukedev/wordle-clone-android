@@ -5,22 +5,21 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface GetShareStringUseCase {
-    operator fun invoke(
+    suspend operator fun invoke(
         state: GameState,
         gameName: String,
-        isDarkMode: Boolean,
-        isColorBlindMode: Boolean
     ): String
 }
 
 @Singleton
-class GetShareStringUseCaseImpl @Inject constructor() : GetShareStringUseCase {
-    override fun invoke(
-        state: GameState,
-        gameName: String,
-        isDarkMode: Boolean,
-        isColorBlindMode: Boolean
-    ): String {
+class GetShareStringUseCaseImpl @Inject constructor(
+    private val getCurrentAppTheme: GetCurrentAppThemeUseCase,
+    private val preferencesRepository: PreferencesRepository,
+) : GetShareStringUseCase {
+    override suspend fun invoke(state: GameState, gameName: String): String {
+        val isColorBlindMode = preferencesRepository.getPreferences().isColorBlindMode
+        val isDarkMode = getCurrentAppTheme() == AppTheme.Dark
+
         val correctBlock = if (isColorBlindMode) "\uD83D\uDFE7" else "\uD83D\uDFE9"
         val wrongLocationBlock = if (isColorBlindMode) "\uD83D\uDFE6" else "\uD83D\uDFE8"
         val incorrectBlock = if (isDarkMode) "⬛" else "⬜"

@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -224,13 +225,13 @@ open class GameViewModel(
         }
     }
 
-    fun getShareString(isDarkMode: Boolean, isColorBlindMode: Boolean): String {
-        return getShareString(
-            gameState.value!!,
-            gameActionStub.getName(),
-            isDarkMode,
-            isColorBlindMode
-        )
+    fun getShareString(): String {
+        return runBlocking {
+             getShareString(
+                gameState.value!!,
+                gameActionStub.getName(),
+            )
+        }
     }
 
     private fun loadStats() {
