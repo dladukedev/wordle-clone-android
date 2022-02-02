@@ -24,4 +24,7 @@ abstract class PreferencesModule {
 
     @Binds
     abstract fun bindSubscribeToPreferencesUseCase(impl: SubscribeToPreferencesUseCaseImpl): SubscribeToPreferencesUseCase
+
+    @Binds
+    abstract fun bindGetPreferencesUseCase(impl: GetPreferencesUseCaseImpl): GetPreferencesUseCase
 }

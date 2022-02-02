@@ -25,8 +25,8 @@ import com.dladukedev.wordle.theme.WordleTheme
 val LocalToastStore = compositionLocalOf<ToastStore> { error("LocalToastStore Not Initialized") }
 
 @Composable
-fun AppRoot(preferencesViewModel: PreferencesViewModel = hiltViewModel()) {
-    val preferences = preferencesViewModel.preferences.collectAsState(initial = Preferences())
+fun AppRoot(initialPreferences: Preferences, preferencesViewModel: PreferencesViewModel = hiltViewModel()) {
+    val preferences = preferencesViewModel.preferences.collectAsState(initial = initialPreferences)
 
     WordleTheme(
         themePreference = preferences.value.colorThemePreference,

@@ -145,7 +145,7 @@ fun StatisticsTab(statistics: StatisticsModel, modifier: Modifier = Modifier) {
                 guess3Count = statistics.guess3Count,
                 guess4Count = statistics.guess4Count,
                 guess5Count = statistics.guess5Count,
-                guess6Count = statistics.guess5Count,
+                guess6Count = statistics.guess6Count,
             )
         }
         item {

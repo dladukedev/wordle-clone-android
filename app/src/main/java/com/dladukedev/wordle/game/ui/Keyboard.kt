@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,8 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.dladukedev.wordle.R
 import com.dladukedev.wordle.game.state.LetterResult
 import com.dladukedev.wordle.theme.Theme
 import kotlinx.coroutines.launch
@@ -26,12 +30,12 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun DeleteKey(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    KeyboardKey(text = "DEL", onClick = onClick, modifier = modifier)
+    KeyboardKey(type = KeyType.Delete, onClick = onClick, modifier = modifier)
 }
 
 @Composable
 fun EnterKey(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    KeyboardKey(text = "ENTER", onClick = onClick, modifier = modifier)
+    KeyboardKey(type = KeyType.Enter, onClick = onClick, modifier = modifier)
 }
 
 @Composable
@@ -84,7 +88,7 @@ fun LetterKey(
     }
 
     KeyboardKey(
-        text = letter.toString(),
+        type = KeyType.Letter(letter),
         onClick = onClick,
         background = backgroundColorAnimatable.value,
         color = textColorAnimatable.value,
@@ -92,9 +96,15 @@ fun LetterKey(
     )
 }
 
+sealed class KeyType {
+    object Enter: KeyType()
+    object Delete: KeyType()
+    data class Letter(val letter: Char): KeyType()
+}
+
 @Composable
 fun KeyboardKey(
-    text: String,
+    type: KeyType,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     background: Color = Theme.colors.keyboardKey,
@@ -110,7 +120,15 @@ fun KeyboardKey(
         ,
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = text, color = color)
+        when(type) {
+            KeyType.Delete -> Icon(
+                painter = painterResource(id = R.drawable.ic_backspace),
+                contentDescription = null,
+                tint = color
+            )
+            KeyType.Enter -> Text(text = "ENTER", color = color, fontSize = 10.sp)
+            is KeyType.Letter -> Text(text = type.letter.toString(), color = color)
+        }
     }
 }
 

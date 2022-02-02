@@ -19,4 +19,5 @@ interface PreferencesRepository {
     suspend fun updateColorTheme(themePreference: ColorThemePreference)
     suspend fun updateIsHardMode(isHardMode: Boolean)
     fun subscribeToPreferences(): Flow<Preferences>
+    suspend fun getPreferences(): Preferences
 }

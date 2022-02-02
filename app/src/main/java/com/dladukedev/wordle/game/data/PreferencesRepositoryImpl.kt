@@ -4,6 +4,7 @@ import com.dladukedev.wordle.game.domain.ColorThemePreference
 import com.dladukedev.wordle.game.domain.Preferences
 import com.dladukedev.wordle.game.domain.PreferencesRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,6 +34,10 @@ class PreferencesRepositoryImpl @Inject constructor(
                 preferences.isHardMode ?: false,
             )
         }
+    }
+
+    override suspend fun getPreferences(): Preferences {
+        return subscribeToPreferences().first()
     }
 
 }
