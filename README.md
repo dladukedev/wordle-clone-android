@@ -13,3 +13,6 @@ words
 banks
 hello
 ```
+
+## License
+[MIT](https://github.com/dladukedev/wordle-clone-android/blob/master/LICENSE.md)
