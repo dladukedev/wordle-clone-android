@@ -7,7 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -65,7 +65,6 @@ fun StatisticsModalButton(modifier: Modifier = Modifier, content: @Composable ()
 }
 
 
-
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun GameOverModal(
@@ -99,7 +98,11 @@ fun GameOverModal(
         onDismissRequest = onDismissRequested,
         properties = DialogProperties(usePlatformDefaultWidth = false) // Workaround for resizing
     ) {
-        Box(modifier = modifier.padding(horizontal = 32.dp, vertical = 64.dp)) {
+        Box(
+            modifier = modifier
+                .widthIn(max = 512.dp)
+                .padding(horizontal = 32.dp, vertical = 64.dp)
+        ) {
             Box(
                 modifier = modifier
                     .background(Theme.colors.background)

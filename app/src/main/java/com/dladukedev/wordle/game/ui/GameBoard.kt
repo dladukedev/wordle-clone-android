@@ -4,7 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.sp
 import com.dladukedev.wordle.game.domain.GuessResult
 import com.dladukedev.wordle.game.state.LetterResult
 import com.dladukedev.wordle.theme.Theme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun FlipLetter(letter: Char, result: LetterResult, rotation: Float, modifier: Modifier = Modifier) {
@@ -155,8 +157,8 @@ fun FutureGuess(modifier: Modifier = Modifier) {
 
 @Composable
 fun GameBoard(
-    currentGuess: List<Char>,
-    previousGuesses: List<GuessResult>,
+    currentGuess: ImmutableList<Char>,
+    previousGuesses: ImmutableList<GuessResult>,
     modifier: Modifier = Modifier,
     shakeCurrentRow: Boolean = false,
     onShakeComplete: () -> Unit = {},
@@ -185,6 +187,57 @@ fun GameBoard(
         Animatable(0f)
     }
 
+    var lastCheckedSize by remember {
+        mutableStateOf<Int?>(null)
+    }
+    var isFlipping by remember {
+        mutableStateOf(false)
+    }
+
+    val flipWillStart = lastCheckedSize != null && lastCheckedSize != previousGuesses.size
+
+    LaunchedEffect(previousGuesses.size) {
+        val checkSize = lastCheckedSize
+        lastCheckedSize = previousGuesses.size
+        if (checkSize == null || checkSize == previousGuesses.size) {
+            return@LaunchedEffect
+        }
+
+        isFlipping = true
+
+        val duration = 400
+        val easing = LinearEasing
+        card1Animation.animateTo(
+            -180f,
+            tween(durationMillis = duration, easing = easing),
+        )
+        card2Animation.animateTo(
+            -180f,
+            tween(durationMillis = duration, easing = easing)
+        )
+        card3Animation.animateTo(
+            -180f,
+            tween(durationMillis = duration, easing = easing)
+        )
+        card4Animation.animateTo(
+            -180f,
+            tween(durationMillis = duration, easing = easing)
+        )
+        card5Animation.animateTo(
+            -180f,
+            tween(durationMillis = duration, easing = easing)
+        )
+
+        card1Animation.snapTo(0f)
+        card2Animation.snapTo(0f)
+        card3Animation.snapTo(0f)
+        card4Animation.snapTo(0f)
+        card5Animation.snapTo(0f)
+
+        isFlipping = false
+        onFlipRowComplete()
+    }
+
     LaunchedEffect(shakeCurrentRow, flipRow) {
         if (shakeCurrentRow) {
             val easing = LinearEasing
@@ -205,40 +258,9 @@ fun GameBoard(
             onShakeComplete()
         }
 
-        if (flipRow) {
-            val duration = 400
-            val easing = LinearEasing
-            card1Animation.animateTo(
-                -180f,
-                tween(durationMillis = duration, easing = easing),
-            )
-            card2Animation.animateTo(
-                -180f,
-                tween(durationMillis = duration, easing = easing)
-            )
-            card3Animation.animateTo(
-                -180f,
-                tween(durationMillis = duration, easing = easing)
-            )
-            card4Animation.animateTo(
-                -180f,
-                tween(durationMillis = duration, easing = easing)
-            )
-            card5Animation.animateTo(
-                -180f,
-                tween(durationMillis = duration, easing = easing)
-            )
-
-            onFlipRowComplete()
-            card1Animation.snapTo(0f)
-            card2Animation.snapTo(0f)
-            card3Animation.snapTo(0f)
-            card4Animation.snapTo(0f)
-            card5Animation.snapTo(0f)
-        }
     }
 
-    if (flipRow) {
+    if (isFlipping || flipWillStart) {
         val pastGuesses = previousGuesses.dropLast(1)
         val lastGuess = previousGuesses.last()
 
@@ -310,8 +332,8 @@ fun GameBoard(
 @Composable
 fun GameBoardPreview() {
     GameBoard(
-        currentGuess = listOf('A', 'B'),
-        previousGuesses = listOf(
+        currentGuess = persistentListOf('A', 'B'),
+        previousGuesses = persistentListOf(
             GuessResult(
                 'A',
                 LetterResult.CORRECT,

@@ -6,12 +6,20 @@ import com.dladukedev.wordle.di.UseDailyChallengeActionStub
 import com.dladukedev.wordle.di.UsePracticeActionStub
 import com.dladukedev.wordle.game.domain.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import javax.inject.Inject
 
 enum class LetterResult {
@@ -24,9 +32,9 @@ enum class LetterResult {
 sealed class UIState {
     object Loading : UIState()
     data class Content(
-        val currentInput: List<Char> = emptyList(),
-        val previousGuesses: List<GuessResult> = emptyList(),
-        val letterStates: Map<Char, LetterResult> = emptyMap(),
+        val currentInput: ImmutableList<Char> = persistentListOf(),
+        val previousGuesses: ImmutableList<GuessResult> = persistentListOf(),
+        val letterStates: ImmutableMap<Char, LetterResult> = persistentMapOf(),
         val isComplete: Boolean = false,
     ) : UIState()
 }
@@ -46,7 +54,7 @@ class DailyChallengeGameActionStub @Inject constructor(
     private val saveDailyChallengeStateUseCase: SaveDailyChallengeStateUseCase,
     private val saveDailyChallengeStatistics: SaveDailyChallengeStatisticsUseCase,
     private val getDailyChallengeStatisticsSummary: GetDailyChallengeStatisticsSummaryUseCase,
-    ) : GameActionStub {
+) : GameActionStub {
     private val challengeDate = getDateForDailyChallenge()
 
     override fun getName(): String {
@@ -76,7 +84,7 @@ class PracticeGameActionStub @Inject constructor(
     private val getPracticeModeGameName: GetPracticeModeGameNameUseCase,
     private val savePracticeModeStatistics: SavePracticeModeStatisticsUseCase,
     private val getPracticeModeStatisticsSummary: GetPracticeModeStatisticsSummaryUseCase
-    ): GameActionStub {
+) : GameActionStub {
     override fun getName(): String {
         return getPracticeModeGameName()
     }
@@ -126,15 +134,27 @@ open class GameViewModel(
         if (it == null) {
             UIState.Loading
         } else {
-            preventActions = it.isComplete
+            preventActions = preventActions || it.isComplete
             mapGameStateToUIState(it)
         }
     }
 
-    private val eventsChannel = Channel<GameEvent>(Channel.BUFFERED)
-    val events = eventsChannel.receiveAsFlow()
+    private val _events = MutableStateFlow(persistentListOf<GameEvent>())
+    val events = _events.asStateFlow()
 
-    private var preventActions = true // For Animations
+    private fun addEvent(event: GameEvent) {
+        _events.update { current ->
+            (current + event).toPersistentList()
+        }
+    }
+
+    fun markEventHandled(id: UUID) {
+        _events.update { current ->
+            current.filterNot { it.id == id }.toPersistentList()
+        }
+    }
+
+    private var preventActions = false // For Animations
 
     fun submitGuess() {
         if (preventActions) {
@@ -143,13 +163,13 @@ open class GameViewModel(
 
         viewModelScope.launch {
             gameState.getAndUpdate { currentState ->
-                if(currentState != null) {
+                if (currentState != null) {
 
                     // TODO: Doing Validation here doesn't feel great
                     when (wordValidator.validateGuess(currentState.currentInput)) {
                         GuessValidationResult.Valid -> {
                             preventActions = true
-                            eventsChannel.send(GameEvent.GuessSuccessfulSubmit)
+                            addEvent(GameEvent.GuessSuccessfulSubmit)
                             val newState =
                                 GameEngine.reduce(currentState, GameEngine.Action.SubmitGuess)
 
@@ -158,14 +178,14 @@ open class GameViewModel(
                             }
 
                             if (newState.isWin) {
-                                eventsChannel.send(GameEvent.GameOverWin(newState.guessCount))
+                                addEvent(GameEvent.GameOverWin(newState.guessCount))
                             }
 
                             if (newState.isLoss) {
-                                eventsChannel.send(GameEvent.GameOverLoss(newState.targetWord))
+                                addEvent(GameEvent.GameOverLoss(newState.targetWord))
                             }
 
-                            if(newState.isComplete) {
+                            if (newState.isComplete) {
                                 launch {
                                     gameActionStub.saveStats(newState)
                                     loadStats()
@@ -174,12 +194,14 @@ open class GameViewModel(
 
                             newState
                         }
+
                         GuessValidationResult.TooShort -> {
-                            eventsChannel.send(GameEvent.GuessTooShort)
+                            addEvent(GameEvent.GuessTooShort)
                             currentState
                         }
+
                         GuessValidationResult.InvalidWord -> {
-                            eventsChannel.send(GameEvent.GuessInvalidWord)
+                            addEvent(GameEvent.GuessInvalidWord)
                             currentState
                         }
                     }
@@ -227,7 +249,7 @@ open class GameViewModel(
 
     fun getShareString(): String {
         return runBlocking {
-             getShareString(
+            getShareString(
                 gameState.value!!,
                 gameActionStub.getName(),
             )
@@ -263,9 +285,9 @@ open class GameViewModel(
             }.toMap()
 
         return UIState.Content(
-            gameState.currentInput.toList(),
-            gameState.previousGuesses,
-            guessedLetters,
+            gameState.currentInput.toImmutableList(),
+            gameState.previousGuesses.toImmutableList(),
+            guessedLetters.toImmutableMap(),
             gameState.isComplete,
         )
     }

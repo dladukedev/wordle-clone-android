@@ -7,9 +7,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,7 +80,7 @@ fun GameHeader(
     Header(modifier = modifier.fillMaxWidth()) {
         HeaderIcon(
             id = R.drawable.ic_close,
-            onClick = { onClickClose() },
+            onClick = onClickClose,
             modifier = Modifier.align(Alignment.CenterStart)
         )
         HeaderText(text = "WORDLE", modifier = Modifier.align(Alignment.Center))
@@ -96,12 +96,12 @@ fun GameHeader(
             if (targetState) {
                 HeaderIcon(
                     id = R.drawable.ic_share,
-                    onClick = { onClickShare() },
+                    onClick = onClickShare,
                 )
             } else {
                 HeaderIcon(
                     id = R.drawable.ic_help,
-                    onClick = { onClickHelp() },
+                    onClick = onClickHelp,
                 )
             }
 

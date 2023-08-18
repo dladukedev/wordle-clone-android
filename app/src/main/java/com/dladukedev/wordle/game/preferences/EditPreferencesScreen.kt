@@ -5,7 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,8 @@ fun ThemePreferenceSelectionRow(
         .clickable { onSelectRow(themePreference) }
         .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically) {
-        BasicText(text = themePreference.name,
+        BasicText(
+            text = themePreference.name,
             modifier = Modifier
                 .padding(vertical = 16.dp)
                 .weight(1f),
@@ -85,20 +87,26 @@ fun PreferencesScreen(viewModel: EditPreferencesViewModel, onClickClose: () -> U
             )
             HeaderText(text = "SETTINGS", modifier = Modifier.align(Alignment.Center))
         }
-        LazyColumn(modifier = Modifier
-            .weight(1f)
-            .padding(horizontal = 32.dp)) {
-            item {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { viewModel.updateIsColorBlindPreference(!preferences.isColorBlindMode) },
-                    verticalAlignment = Alignment.CenterVertically) {
-                    BasicText(text = "Color Blind Mode",
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 512.dp)
+                    .padding(horizontal = 32.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.updateIsColorBlindPreference(!preferences.isColorBlindMode) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicText(
+                        text = "Color Blind Mode",
                         style = labelStyle,
                         modifier = Modifier
                             .weight(1f)
-                            .padding(vertical = 16.dp))
-                    if(preferences.isColorBlindMode) {
+                            .padding(vertical = 16.dp)
+                    )
+                    if (preferences.isColorBlindMode) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_check),
                             contentDescription = null,
@@ -110,20 +118,20 @@ fun PreferencesScreen(viewModel: EditPreferencesViewModel, onClickClose: () -> U
                         )
                     }
                 }
-            }
-            item {
                 Divider(color = Theme.colors.lightOnBackground)
-            }
-            item {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showThemeSelectionDialog.value = true },
-                    verticalAlignment = Alignment.CenterVertically) {
-                    BasicText(text = "Theme",
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showThemeSelectionDialog.value = true },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicText(
+                        text = "Theme",
                         style = labelStyle,
                         modifier = Modifier
                             .weight(1f)
-                            .padding(vertical = 16.dp))
+                            .padding(vertical = 16.dp)
+                    )
 
                 }
             }
@@ -132,32 +140,26 @@ fun PreferencesScreen(viewModel: EditPreferencesViewModel, onClickClose: () -> U
             Dialog(onDismissRequest = { showThemeSelectionDialog.value = false }) {
                 Box(modifier = Modifier.background(Theme.colors.background)) {
                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        ThemePreferenceSelectionRow(
-                            themePreference = ColorThemePreference.System,
+                        ThemePreferenceSelectionRow(themePreference = ColorThemePreference.System,
                             currentThemePreference = preferences.colorThemePreference,
                             onSelectRow = { pref ->
                                 viewModel.updateColorThemePreference(pref)
                                 showThemeSelectionDialog.value = false
-                            }
-                        )
+                            })
                         Divider(color = Theme.colors.lightOnBackground)
-                        ThemePreferenceSelectionRow(
-                            themePreference = ColorThemePreference.Dark,
+                        ThemePreferenceSelectionRow(themePreference = ColorThemePreference.Dark,
                             currentThemePreference = preferences.colorThemePreference,
                             onSelectRow = { pref ->
                                 viewModel.updateColorThemePreference(pref)
                                 showThemeSelectionDialog.value = false
-                            }
-                        )
+                            })
                         Divider(color = Theme.colors.lightOnBackground)
-                        ThemePreferenceSelectionRow(
-                            themePreference = ColorThemePreference.Light,
+                        ThemePreferenceSelectionRow(themePreference = ColorThemePreference.Light,
                             currentThemePreference = preferences.colorThemePreference,
                             onSelectRow = { pref ->
                                 viewModel.updateColorThemePreference(pref)
                                 showThemeSelectionDialog.value = false
-                            }
-                        )
+                            })
                     }
                 }
             }

@@ -3,11 +3,14 @@ package com.dladukedev.wordle.game.statistics
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +28,7 @@ import com.dladukedev.wordle.game.ui.HeaderIcon
 import com.dladukedev.wordle.game.ui.HeaderText
 import com.dladukedev.wordle.theme.Theme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun Tab(text: String, isSelected: Boolean, modifier: Modifier = Modifier) {
@@ -38,7 +42,11 @@ fun Tab(text: String, isSelected: Boolean, modifier: Modifier = Modifier) {
     }
 }
 
-enum class Tabs { Overview, Daily, Practice }
+object Tabs {
+    const val Overview = 0
+    const val Daily = 1
+    const val Practice = 2
+}
 
 @Composable
 fun StatisticsTab(statistics: StatisticsModel, modifier: Modifier = Modifier) {
@@ -65,10 +73,13 @@ fun StatisticsTab(statistics: StatisticsModel, modifier: Modifier = Modifier) {
         textAlign = TextAlign.Center,
     )
 
-    LazyColumn(modifier = modifier
-        .fillMaxSize()
-        .padding(horizontal = 32.dp)) {
-        item {
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 512.dp)
+                .fillMaxSize()
+                .padding(horizontal = 32.dp)
+        ) {
             Row(
                 modifier = Modifier
                     .widthIn(max = 360.dp),
@@ -98,7 +109,7 @@ fun StatisticsTab(statistics: StatisticsModel, modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                if(statistics.currentStreak != null) {
+                if (statistics.currentStreak != null) {
                     Column(modifier = Modifier.weight(1f)) {
                         BasicText(
                             text = statistics.currentStreak.toString(),
@@ -112,7 +123,7 @@ fun StatisticsTab(statistics: StatisticsModel, modifier: Modifier = Modifier) {
                         )
                     }
                 }
-                if(statistics.longestStreak != null) {
+                if (statistics.longestStreak != null) {
                     Column(modifier = Modifier.weight(1f)) {
                         BasicText(
                             text = statistics.longestStreak.toString(),
@@ -127,18 +138,10 @@ fun StatisticsTab(statistics: StatisticsModel, modifier: Modifier = Modifier) {
                     }
                 }
             }
-        }
 
-        item {
             Spacer(modifier = Modifier.height(16.dp))
-        }
-        item {
             BasicText(text = "GUESS DISTRIBUTION", style = headerStyle)
-        }
-        item {
             Spacer(modifier = Modifier.height(8.dp))
-        }
-        item {
             GuessDistributionGraph(
                 guess1Count = statistics.guess1Count,
                 guess2Count = statistics.guess2Count,
@@ -147,19 +150,13 @@ fun StatisticsTab(statistics: StatisticsModel, modifier: Modifier = Modifier) {
                 guess5Count = statistics.guess5Count,
                 guess6Count = statistics.guess6Count,
             )
-        }
-        item {
             Spacer(modifier = Modifier.height(16.dp))
-        }
-        item {
             BasicText(text = "TOP WORDS", style = headerStyle)
-        }
-        item {
             Spacer(modifier = Modifier.height(8.dp))
-        }
-        items(statistics.topWords) { pair ->
-            val (word, count) = pair
-            BasicText(text = "$word ($count)", style = topWordsStyle)
+            statistics.topWords.forEach { pair ->
+                val (word, count) = pair
+                BasicText(text = "$word ($count)", style = topWordsStyle)
+            }
         }
     }
 }
@@ -171,25 +168,26 @@ fun LoadingTab(modifier: Modifier = Modifier) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StatisticsScreen(viewModel: StatisticsViewModel, onClickClose: () -> Unit) {
-    var snapAnimation by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        snapAnimation = false
-    }
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
 
     val stats = viewModel.stats.collectAsState(initial = null).value
-
-    val selectedTab = remember {
-        mutableStateOf(Tabs.Overview)
+    val coroutineScope = rememberCoroutineScope()
+    val scrollToTab = remember {
+        { pageIndex: Int ->
+            coroutineScope.launch {
+                pagerState.animateScrollToPage(pageIndex)
+            }
+        }
     }
 
     Column {
         Header(modifier = Modifier.fillMaxWidth()) {
             HeaderIcon(
                 id = R.drawable.ic_close,
-                onClick = { onClickClose() },
+                onClick = onClickClose,
                 modifier = Modifier.align(Alignment.CenterStart)
             )
             HeaderText(text = "STATISTICS", modifier = Modifier.align(Alignment.Center))
@@ -197,31 +195,31 @@ fun StatisticsScreen(viewModel: StatisticsViewModel, onClickClose: () -> Unit) {
         Row {
             Tab(
                 text = "OVERVIEW",
-                isSelected = selectedTab.value == Tabs.Overview,
+                isSelected = pagerState.currentPage == Tabs.Overview,
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { selectedTab.value = Tabs.Overview }
+                    .clickable { scrollToTab(Tabs.Overview) }
             )
             Tab(
                 text = "DAILY",
-                isSelected = selectedTab.value == Tabs.Daily,
+                isSelected = pagerState.currentPage == Tabs.Daily,
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { selectedTab.value = Tabs.Daily }
+                    .clickable { scrollToTab(Tabs.Daily) }
             )
             Tab(
                 text = "PRACTICE",
-                isSelected = selectedTab.value == Tabs.Practice,
+                isSelected = pagerState.currentPage == Tabs.Practice,
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { selectedTab.value = Tabs.Practice }
+                    .clickable { scrollToTab(Tabs.Practice) }
             )
         }
-        Crossfade(targetState = selectedTab.value, animationSpec = if(snapAnimation) snap() else tween(400)) { tab ->
-            when (tab) {
-                Tabs.Overview -> if (stats != null) StatisticsTab(statistics = stats.overviewStats) else LoadingTab()
-                Tabs.Daily -> if (stats != null) StatisticsTab(statistics = stats.dailyChallengeStats) else LoadingTab()
-                Tabs.Practice -> if (stats != null) StatisticsTab(statistics = stats.practiceModeStats) else LoadingTab()
+        HorizontalPager(state = pagerState) { pageIndex ->
+            when (pageIndex) {
+                0 -> if (stats != null) StatisticsTab(statistics = stats.overviewStats) else LoadingTab()
+                1 -> if (stats != null) StatisticsTab(statistics = stats.dailyChallengeStats) else LoadingTab()
+                2 -> if (stats != null) StatisticsTab(statistics = stats.practiceModeStats) else LoadingTab()
             }
         }
     }

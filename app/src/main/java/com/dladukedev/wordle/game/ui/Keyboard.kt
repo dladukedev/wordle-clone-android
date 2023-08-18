@@ -8,8 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import com.dladukedev.wordle.R
 import com.dladukedev.wordle.game.state.LetterResult
 import com.dladukedev.wordle.theme.Theme
+import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.launch
 
 
@@ -42,10 +45,11 @@ fun EnterKey(onClick: () -> Unit, modifier: Modifier = Modifier) {
 fun LetterKey(
     letter: Char,
     letterState: LetterResult?,
-    onClick: () -> Unit,
+    onClick: (Char) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val initialLetterState = remember { mutableStateOf(letterState) }
+    val keyboardClick = remember(letter, onClick) { { onClick(letter) } }
 
     val defaultBackgroundColor = Theme.colors.keyboardKey
     val defaultTextColor = Theme.colors.onKeyboardKey
@@ -64,7 +68,7 @@ fun LetterKey(
         else -> Theme.colors.keyboardKey
     }
 
-    val textColor = when(letterState) {
+    val textColor = when (letterState) {
         LetterResult.CORRECT -> Theme.colors.onCorrectLetter
         LetterResult.WRONG_LOCATION -> Theme.colors.onWrongLocationLetter
         LetterResult.INCORRECT -> Theme.colors.onIncorrectLetter
@@ -72,8 +76,8 @@ fun LetterKey(
     }
 
     LaunchedEffect(letterState) {
-        if(letterState != null) {
-            val animation: AnimationSpec<Color> = if(initialLetterState.value == letterState) {
+        if (letterState != null) {
+            val animation: AnimationSpec<Color> = if (initialLetterState.value == letterState) {
                 snap()
             } else {
                 tween(250, 2500)
@@ -89,7 +93,7 @@ fun LetterKey(
 
     KeyboardKey(
         type = KeyType.Letter(letter),
-        onClick = onClick,
+        onClick = keyboardClick,
         background = backgroundColorAnimatable.value,
         color = textColorAnimatable.value,
         modifier = modifier
@@ -97,9 +101,9 @@ fun LetterKey(
 }
 
 sealed class KeyType {
-    object Enter: KeyType()
-    object Delete: KeyType()
-    data class Letter(val letter: Char): KeyType()
+    object Enter : KeyType()
+    object Delete : KeyType()
+    data class Letter(val letter: Char) : KeyType()
 }
 
 @Composable
@@ -116,16 +120,16 @@ fun KeyboardKey(
             .clickable { onClick() }
             .background(background)
             .padding(8.dp)
-            .height(40.dp)
-        ,
+            .height(40.dp),
         contentAlignment = Alignment.Center,
     ) {
-        when(type) {
+        when (type) {
             KeyType.Delete -> Icon(
                 painter = painterResource(id = R.drawable.ic_backspace),
                 contentDescription = null,
                 tint = color
             )
+
             KeyType.Enter -> Text(text = "ENTER", color = color, fontSize = 10.sp)
             is KeyType.Letter -> Text(text = type.letter.toString(), color = color)
         }
@@ -134,7 +138,7 @@ fun KeyboardKey(
 
 @Composable
 fun Keyboard(
-    letterStates: Map<Char, LetterResult>,
+    letterStates: ImmutableMap<Char, LetterResult>,
     onLetterSelected: (Char) -> Unit,
     onDeleteSelected: () -> Unit,
     onEnterSelected: () -> Unit,
@@ -146,22 +150,22 @@ fun Keyboard(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf('Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P').map { letter ->
+            persistentListOf('Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P').map { letter ->
                 LetterKey(
                     letter = letter,
                     letterState = letterStates[letter],
-                    onClick = { onLetterSelected(letter) },
+                    onClick = onLetterSelected,
                     modifier = Modifier.weight(1f),
                 )
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(modifier = Modifier.weight(0.5f))
-            listOf('A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L').map { letter ->
+            persistentListOf('A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L').map { letter ->
                 LetterKey(
                     letter = letter,
                     letterState = letterStates[letter],
-                    onClick = { onLetterSelected(letter) },
+                    onClick = onLetterSelected,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -172,11 +176,11 @@ fun Keyboard(
                 onClick = onEnterSelected,
                 modifier = Modifier.weight(1.5f),
             )
-            listOf('Z', 'X', 'C', 'V', 'B', 'N', 'M').map { letter ->
+            persistentListOf('Z', 'X', 'C', 'V', 'B', 'N', 'M').map { letter ->
                 LetterKey(
                     letter = letter,
                     letterState = letterStates[letter],
-                    onClick = { onLetterSelected(letter) },
+                    onClick = onLetterSelected,
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -192,7 +196,7 @@ fun Keyboard(
 @Composable
 fun KeyboardPreview() {
     Keyboard(
-        letterStates = emptyMap(),
+        letterStates = persistentMapOf(),
         onLetterSelected = { /* no-op */ },
         onDeleteSelected = { /* no-op */ },
         onEnterSelected = { /* no-op */ })

@@ -4,8 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,8 +34,6 @@ fun MainMenuButtonText(text: String, modifier: Modifier = Modifier) {
         fontSize = 14.sp,
         letterSpacing = 1.25.sp,
     )
-
-    MaterialTheme.typography.button
 
     BasicText(
         text = text.uppercase(),
